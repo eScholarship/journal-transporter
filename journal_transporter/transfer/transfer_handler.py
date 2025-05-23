@@ -8,6 +8,7 @@ import json
 import uuid
 import re
 import inflector
+import time
 
 from journal_transporter import __version__
 
@@ -459,6 +460,26 @@ class TransferHandler:
 
         if response.ok:
             return response.json()
+
+        # Sometimes we get forbidden errors from cloudfront
+        # if so do a sleep and then retry.
+        if response.status_code == 403:
+            time.sleep(10)
+            try:
+                response = self.target_connection.post(api_path, data)
+            except Exception as e:
+                context = {
+                    "message": "An error has occurred while attempting to push data",
+                    "server": self.target,
+                    "url": api_path,
+                    "data": data
+                }
+                return self.__handle_error(e, context)
+
+            self.progress.debug(f"{response}: {response.text}")
+
+            if response.ok:
+                return response.json()
 
         context = {
             "message": "A server has returned an error response",
