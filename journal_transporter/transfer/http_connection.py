@@ -45,14 +45,17 @@ class HTTPConnection(AbstractConnection):
         """
         url = f"{self.host.strip('/')}/{path.strip('/')}/"
         request_opts = self.__build_post_params(data.copy())
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+        }
 
         response = None
         if type(data) is list:
             response = []
             for index, record in enumerate(data):
-                response.append(requests.post(url, **request_opts))
+                response.append(requests.post(url, headers=headers, **request_opts))
         else:
-            response = requests.post(url, **request_opts)
+            response = requests.post(url, headers=headers, **request_opts)
 
         return response
 
